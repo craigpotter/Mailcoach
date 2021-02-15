@@ -34,6 +34,14 @@ return [
             'driver' => 'sync',
         ],
 
+        'mailcoach-redis' => [
+            'driver' => 'redis',
+            'connection' => 'default',
+            'queue' => env('REDIS_QUEUE', 'default'),
+            'retry_after' => 60 * 60,
+            'block_for' => null,
+        ],
+
         'database' => [
             'driver' => 'database',
             'table' => 'jobs',
@@ -55,6 +63,7 @@ return [
             'secret' => env('AWS_SECRET_ACCESS_KEY'),
             'prefix' => env('SQS_PREFIX', 'https://sqs.us-east-1.amazonaws.com/your-account-id'),
             'queue' => env('SQS_QUEUE', 'your-queue-name'),
+            'suffix' => env('SQS_SUFFIX'),
             'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
         ],
 
@@ -66,13 +75,6 @@ return [
             'block_for' => null,
         ],
 
-        'mailcoach-redis' => [
-            'driver' => 'redis',
-            'connection' => 'default',
-            'queue' => env('REDIS_QUEUE', 'default'),
-            'retry_after' => 11 * 60,
-            'block_for' => null,
-        ],
     ],
 
     /*
@@ -87,7 +89,7 @@ return [
     */
 
     'failed' => [
-        'driver' => env('QUEUE_FAILED_DRIVER', 'database'),
+        'driver' => env('QUEUE_FAILED_DRIVER', 'database-uuids'),
         'database' => env('DB_CONNECTION', 'mysql'),
         'table' => 'failed_jobs',
     ],

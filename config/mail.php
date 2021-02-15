@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => 'mailcoach',
+    'default' => env('MAIL_MAILER', 'smtp'),
 
     /*
     |--------------------------------------------------------------------------
@@ -34,9 +34,7 @@ return [
     */
 
     'mailers' => [
-        /*
-         * The Mailcoach mailer will be added dynamically
-         */
+
     ],
 
     /*
@@ -52,7 +50,7 @@ return [
 
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Mailcoach'),
+        'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
     /*

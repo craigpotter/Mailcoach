@@ -2,75 +2,64 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
-use Illuminate\Routing\Router;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 
 class RouteServiceProvider extends ServiceProvider
 {
-    public function map(Router $router)
+    /**
+     * The path to the "home" route for your application.
+     *
+     * This is used by Laravel authentication to redirect users after login.
+     *
+     * @var string
+     */
+    public const HOME = '/home';
+
+    /**
+     * The controller namespace for the application.
+     *
+     * When present, controller route declarations will automatically be prefixed with this namespace.
+     *
+     * @var string|null
+     */
+    // protected $namespace = 'App\\Http\\Controllers';
+
+    /**
+     * Define your route model bindings, pattern filters, etc.
+     *
+     * @return void
+     */
+    public function boot()
     {
-        Route::mailcoach('/');
-        Route::sesFeedback('ses-feedback');
-        Route::mailgunFeedback('mailgun-feedback');
-        Route::sendgridFeedback('sendgrid-feedback');
-        Route::postmarkFeedback('postmark-feedback');
+        $this->configureRateLimiting();
 
-        $this
-            ->mapWebRoutes($router)
-            ->mapAuthRoutes($router)
-            ->mapAppRoutes($router)
-            ->mapApiRoutes($router);
+        Route::mailcoachUi('/');
 
-        if (app()->environment('local')) {
-            $this->mapMailRoutes($router);
-        }
+        $this->routes(function () {
+            Route::prefix('api')
+                ->middleware('api')
+                ->namespace($this->namespace)
+                ->group(base_path('routes/api.php'));
+
+            Route::middleware('web')
+                ->namespace($this->namespace)
+                ->group(base_path('routes/web.php'));
+        });
     }
 
-    protected function mapWebRoutes(Router $router)
+    /**
+     * Configure the rate limiters for the application.
+     *
+     * @return void
+     */
+    protected function configureRateLimiting()
     {
-        $router
-            ->middleware('web')
-            ->group(base_path('routes/web.php'));
-
-        return $this;
-    }
-
-    protected function mapAuthRoutes(Router $router): self
-    {
-        $router
-            ->middleware(['web', 'guest'])
-            ->group(base_path('routes/auth.php'));
-
-        return $this;
-    }
-
-    protected function mapAppRoutes(Router $router)
-    {
-        $router
-            ->middleware(['web', 'auth'])
-            ->group(base_path('routes/app.php'));
-
-        return $this;
-    }
-
-    protected function mapApiRoutes(Router $router)
-    {
-        $router
-            ->prefix('api')
-            ->middleware('api')
-            ->group(base_path('routes/api.php'));
-
-        return $this;
-    }
-
-    private function mapMailRoutes(Router $router)
-    {
-        $router
-            ->prefix('mail')
-            ->middleware('web')
-            ->group(base_path('routes/local/mails.php'));
-
-        return $this;
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60);
+        });
     }
 }
